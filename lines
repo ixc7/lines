@@ -1,0 +1,84 @@
+#!/usr/local/bin/bash
+
+version="0.0.0"
+declare -a list=()
+start=1
+end=0
+
+helpTxt="
+\x1b[1m\x1b[38;5;6mlines ${version}\x1b[0m
+prints a range of lines from a file
+if no options are specified, prints the first line of file
+
+\x1b[38;5;2mUSAGE\x1b[0m 
+  \x1b[1mlines\x1b[0m [OPTIONS] FILE...
+
+\x1b[38;5;2mOPTIONS\x1b[0m
+  -r, --range <a-b>
+      print lines within range
+  -f, --from <n>
+      start at line
+  -t, --to <n>
+      end at line
+  -h, --help
+      print this text and exit
+  -v, --version
+      print version and exit (${version})
+
+"
+
+quit () {
+  echo -e "${@}"
+  exit 0
+}
+
+validate () {
+  ([[ "${@}" -gt 0 ]] || [[ "${@}" -lt 0 ]] || exit 1) > /dev/null 2>&1
+  [[ ${?} -eq 0 ]] || quit "\x1b[38;5;4mrange can only contain numbers greater than zero\x1b[0m"
+}
+
+parseFlags () {
+  while [[ ${#} -gt 0 ]]
+  do
+  case ${1} in
+    -h | --help)
+      quit "${helpTxt}"
+    ;;
+    -v | --version)
+      quit "${version}"
+    ;;
+    -f | --from)
+      shift
+      start="${1}"
+      validate "${start}"
+      shift
+    ;;
+    -t | --to)
+      shift
+      end="${1}"
+      validate "${end}"
+      shift
+    ;;
+    -r | --range)
+      shift
+      start=$(echo "${1}" | cut -d "-" -f 1)
+      end=$(echo "${1}" | cut -d "-" -f 2)
+      validate "${start}"
+      validate "${end}"
+      shift
+    ;;
+    *)
+      list+=("${1}")
+      shift 
+    ;;
+  esac
+  done
+}
+
+[[ -z "${1}" ]] && quit "\x1b[38;5;4mno file specified\nfor more information, run 'lines --help'\x1b[0m"
+parseFlags "${@}"
+
+[[ -z "${list[@]}" ]] && quit "\x1b[38;5;4mno file specified\x1b[0m"
+[[ -f "${list[@]}" ]] || quit "\x1b[38;5;4m${list[@]} not found\x1b[0m"
+
+cat "${list[@]}" | sed -n "${start},${end}p"
