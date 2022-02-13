@@ -23,3 +23,5 @@ OPTIONS
       print version and exit (0.0.0)
 
 ```
+
+[![asciicast](https://asciinema.org/a/468638.svg)](https://asciinema.org/a/468638)
